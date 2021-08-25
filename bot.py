@@ -3,7 +3,7 @@ import telebot
 from history import save_history
 from keyBoard import keyboard_markup
 from CookRequest import CookRequest
-from for_bd import dish_for_one, all_dish_for_one
+from for_bd import dish_for_one, all_dish_for_one, recipes
 from calculation import calculation
 from config import TOKEN
 
@@ -24,6 +24,16 @@ def processing_message(request_json):
 
         bot.send_message(chat_id=chat_id, text='выберите или введите сколько будет порций',
                          reply_markup=keyboard_markup(range(1, 31), digit=True))
+    elif message.get('entities') and message_text == '/recipe':
+        # получить рецепт по указаному блюду  cook_request.dish
+        cook_request = cook_requests.get(chat_id)
+        if cook_request.dish:
+            portion = recipes[cook_request.dish][0]
+            recipe = recipes[cook_request.dish][1]
+            bot.send_message(chat_id=chat_id, text=f'Одна порция - {portion}\nРецепт - {recipe}\n'
+                                                    'чтобы начать сначала нажмите /start')
+        else:
+            bot.send_message(chat_id=chat_id, text='Блюдо еще не выбрано,чтобы начать сначала нажмите /start')
     elif message_text.isdigit():
 
         # если ввели число - сохраняем как количество порций и делаем клавиатру из типов блюд
@@ -60,7 +70,8 @@ def processing_callback_query(request_json):
                                                    'выберите блюдо',
                              reply_markup=keyboard_markup(dish_for_one.get(dish, [])))
         else:
-            bot.send_message(chat_id=chat_id, text=f'{dish} - нет данных в базе\n для начала работы нажмите /start')
+            bot.send_message(chat_id=chat_id, text=f'{dish} - нет данных в базе\n '
+                                                   'для начала работы нажмите /start')
     elif dish in all_dish_for_one:
         # если прислали нужное блюдо, отправляем расчет ингридиентов по порциям.
         if all_dish_for_one.get(dish):
@@ -68,8 +79,9 @@ def processing_callback_query(request_json):
             calculat = calculation(dish, cook_request.count_people)
             answer = (f'порций - {cook_request.count_people},\n'
                       f'блюдо - {cook_request.dish}\n'
-                      f'{calculat}'
-                      '\n для начала работы нажмите /start')
+                      f'{calculat}\n'
+                      f'Получить рецепт {cook_request.dish} нажмите /recipe\n'
+                      'Для начала работы нажмите /start')
             bot.send_message(chat_id=chat_id, text=answer)
             save_history(cook_request)  # сохраняем результат
         else:
