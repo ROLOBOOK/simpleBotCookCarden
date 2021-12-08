@@ -3,6 +3,7 @@ from flask_sslify import SSLify
 from flask import request
 import logging
 from bot import processing_message, processing_callback_query
+from bot_italy.bot import processing_message as italian_processing_message
 
 
 
@@ -25,6 +26,21 @@ def index():
 
     elif request.method == 'GET':
         return 'OK', 200
+
+@app.route('/italian/', methods=['POST', 'GET'])
+def index2():
+    if request.method == 'POST':
+        request_json = request.get_json()
+        if request_json.get('message'):
+            italian_processing_message(request_json)
+
+        # elif request_json.get('callback_query'):
+        #
+        #     processing_callback_query(request_json)
+        return 'OK', 200
+
+    elif request.method == 'GET':
+        return 'OK!', 200
 
 
 if __name__ == '__main__':

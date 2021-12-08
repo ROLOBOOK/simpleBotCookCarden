@@ -17,8 +17,5 @@ def save_history(cookrequest):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-
-
-
 if __name__ == '__main__':
     pass
